@@ -10,7 +10,7 @@
             {
                 var command = request.Adapt<CreateProductCommand>();
                 var result = await sender.Send(command);
-
+                
                 var response = result.Adapt<CreateProductResponse>();
 
                 return Results.Ok(response);
