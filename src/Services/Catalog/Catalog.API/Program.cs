@@ -1,8 +1,9 @@
-
-using Carter;
-using Catalog.API.Models;
+using BuildingBlocks.Behaviors;
+using BuildingBlocks.Exceptions.Handler;
+using Catalog.API.Data;
+using Catalog.API.Products.CreateProduct;
+using HealthChecks.UI.Client;
 using Marten;
-using Weasel.Core;
 
 namespace Catalog.API
 {
@@ -24,13 +25,35 @@ namespace Catalog.API
                 opts.Connection(connection);
             }).UseLightweightSessions();
 
+            if(builder.Environment.IsDevelopment())
+            {
+                builder.Services.InitializeMartenWith<CatalogInitialData>();
+            }
+
+            builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCommandValidator>();
             builder.Services.AddCarter();
             builder.Services.AddMediatR(config =>
             {
                 config.RegisterServicesFromAssemblyContaining<Program>();
+                config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+                config.AddOpenBehavior(typeof(LoggingBehavior<,>));
             });
+
+            builder.Services.AddHealthChecks()
+                .AddNpgSql(builder.Configuration.GetConnectionString("MartenConnection")!);
+
+
             var app = builder.Build();
             app.MapCarter();
+
+            app.UseExceptionHandler(options => { });
+
+            app.UseHealthChecks("/health",new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+               ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
             app.Run();
         }
     }

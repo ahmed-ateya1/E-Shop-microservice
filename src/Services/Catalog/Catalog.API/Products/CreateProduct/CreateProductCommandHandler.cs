@@ -1,32 +1,38 @@
 ﻿using BuildingBlocks.CQRS;
 using Catalog.API.Models;
-using Marten;
+using Catalog.API.Products.Dtos;
 
 namespace Catalog.API.Products.CreateProduct
 {
-    public record CreateProductCommand(string Name , string Description , string ImageFile , decimal Price , List<string> Categories)
-        : ICommand<CreateProductResult>;
-    public record CreateProductResult(Guid Id);
+    public record CreateProductCommand(ProductAddRequest productAddRequest)
+        : ICommand<ProductResponse>;
+
+    public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+    {
+        public CreateProductCommandValidator()
+        {
+            RuleFor(x => x.productAddRequest.Name).NotEmpty().WithMessage("Name is required.");
+            RuleFor(x => x.productAddRequest.Description).NotEmpty().WithMessage("Description is required.");
+            RuleFor(x => x.productAddRequest.ImageFile).NotEmpty().WithMessage("ImageFile is required.");
+            RuleFor(x => x.productAddRequest.Price).GreaterThan(0).WithMessage("Price must be greater than 0.");
+            RuleFor(x => x.productAddRequest.Categories).NotEmpty().WithMessage("At least one category is required.");
+        }
+    }
+
     public class CreateProductCommandHandler(IDocumentSession _session)
-        : ICommandHandler<CreateProductCommand, CreateProductResult>
+        : ICommandHandler<CreateProductCommand, ProductResponse>
     {
 
 
-        public async Task<CreateProductResult> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+        public async Task<ProductResponse> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
-            var product = new Product
-            {
-                Name = request.Name,
-                Description = request.Description,
-                ImageFile = request.ImageFile,
-                Price = request.Price,
-                Categories = request.Categories,
-                Id = Guid.NewGuid()
-            };
+
+            var product = request.productAddRequest.Adapt<Product>();
+            product.Id = Guid.NewGuid();
             _session.Store(product);
             await _session.SaveChangesAsync(cancellationToken);
 
-            return new CreateProductResult(product.Id);
+            return product.Adapt<ProductResponse>();
         }
     }
 }
