@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using Catalog.API.Models;
 using Catalog.API.Products.Dtos;
-using Marten;
 
 namespace Catalog.API.Products.GetProductById
 {

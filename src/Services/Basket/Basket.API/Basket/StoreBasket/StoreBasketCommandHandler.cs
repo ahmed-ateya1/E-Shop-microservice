@@ -1,4 +1,8 @@
-﻿namespace Basket.API.Basket.StoreBasket
+﻿using Basket.API.Data;
+using Basket.API.Models;
+using Mapster;
+
+namespace Basket.API.Basket.StoreBasket
 {
     public record StoreBasketCommand(BasketAddRequest request) : ICommand<BasketResponse>;
 
@@ -12,9 +16,20 @@
     }
     public class StoreBasketCommandHandler : ICommandHandler<StoreBasketCommand, BasketResponse>
     {
-        public async Task<BasketResponse> Handle(StoreBasketCommand request, CancellationToken cancellationToken)
+        private readonly IBasketRepository _basketRepository;
+
+        public StoreBasketCommandHandler(IBasketRepository basketRepository)
         {
-            return new BasketResponse();
+            _basketRepository = basketRepository;
+        }
+
+        public async Task<BasketResponse> Handle(StoreBasketCommand command, CancellationToken cancellationToken)
+        {
+            var basket = command.request.Adapt<ShoppingCart>();
+
+            var result = await _basketRepository.StoreBasketAsync(basket, cancellationToken);
+
+            return result.Adapt<BasketResponse>();
         }
     }
 }

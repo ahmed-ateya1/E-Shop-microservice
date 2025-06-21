@@ -18,13 +18,28 @@ services:
       - catalog-network
     depends_on:
       - catalogdb
+
   basket-microservice:
-    image: catalogapi
+    image: basketapi
     build:
       context: .
       dockerfile: Services/Basket/Basket.API/Dockerfile
     ports:
         - "6000:8080"
+    environment:
+      - POSTGRES_HOST=basketdb
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=BasketDB
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+        - basket-network
+        - catalog-network
+    depends_on:
+        - basketdb
+        - catalog.microservice
+        - distributedCache
+
   catalogdb:
     image: postgres
     restart: always
@@ -39,9 +54,34 @@ services:
     volumes:
       - postgres_catalog:/var/lib/postgresql/data
 
+  basketdb:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=BasketDB
+    ports:
+      - "5434:5432"
+    networks:
+      - basket-network
+    volumes:
+      - postgres_basket:/var/lib/postgresql/data
+
+  distributedCache:
+    container_name: distributedCache
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - basket-network
 networks:
   catalog-network:
+    driver: bridge
+  basket-network:
     driver: bridge
 
 volumes:
   postgres_catalog:
+  postgres_basket:

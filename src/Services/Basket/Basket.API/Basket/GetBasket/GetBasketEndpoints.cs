@@ -7,6 +7,10 @@
             app.MapGet("/basket/{userName}", async (string userName, ISender sender) =>
             {
                 var result = await sender.Send(new GetBasketQuery(userName));
+                if(result == null)
+                {
+                    return Results.NotFound($"Basket for this userName {userName} Not found");
+                }
 
                 return Results.Ok(result);
             }).WithDescription("Get a user's basket")
