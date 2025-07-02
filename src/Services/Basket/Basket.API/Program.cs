@@ -1,5 +1,6 @@
 using Basket.API.Data;
 using Basket.API.Models;
+using Discount.GRPC;
 using HealthChecks.UI.Client;
 using Marten;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -40,6 +41,10 @@ namespace Basket.API
             builder.Services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = builder.Configuration.GetConnectionString("Redis");
+            });
+            builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(options =>
+            {
+                options.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]!);
             });
 
             builder.Services.AddExceptionHandler<CustomExceptionHandler>();

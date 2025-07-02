@@ -32,6 +32,7 @@ services:
       - POSTGRES_DB=BasketDB
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - GrpcSettings__DiscountUrl=http://discount.grpc:8080
     networks:
         - basket-network
         - catalog-network
@@ -39,6 +40,19 @@ services:
         - basketdb
         - catalog.microservice
         - distributedCache
+        - discount.grpc
+
+  discount.grpc:
+    image: ${DOCKER_REGISTRY-}discountgrpc
+    build:
+      context: .
+      dockerfile: Services/Discount/Discount.GRPC/Dockerfile
+    ports:
+       - "7000:8080"
+       - "7050:8081"
+    networks:
+    - catalog-network
+    - basket-network
 
   catalogdb:
     image: postgres
@@ -68,6 +82,20 @@ services:
     volumes:
       - postgres_basket:/var/lib/postgresql/data
 
+  ordersdb:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=AhmedAteya12348@#
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    networks:
+      - orders-network
+    volumes:
+      - mssql_orders:/var/opt/mssql
+
   distributedCache:
     container_name: distributedCache
     image: redis
@@ -76,12 +104,16 @@ services:
       - "6379:6379"
     networks:
       - basket-network
+
 networks:
   catalog-network:
     driver: bridge
   basket-network:
     driver: bridge
+  orders-network:
+    driver: bridge
 
 volumes:
   postgres_catalog:
   postgres_basket:
+  mssql_orders:
