@@ -58,7 +58,7 @@
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity, nameof(quantity));
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price, nameof(price));
-            
+
             var orderItem = new OrderItem(Id, productId, quantity, price);
 
             _items.Add(orderItem);
@@ -66,7 +66,7 @@
         }
         public void Remove(ProductId productId)
         {
-           ArgumentNullException.ThrowIfNull(productId, nameof(productId));
+            ArgumentNullException.ThrowIfNull(productId, nameof(productId));
 
             var orderItem = _items.FirstOrDefault(x => x.ProductId == productId);
             if (orderItem == null)
