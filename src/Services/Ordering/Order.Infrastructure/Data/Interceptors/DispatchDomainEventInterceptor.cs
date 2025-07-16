@@ -24,13 +24,11 @@ namespace Ordering.Infrastructure.Data.Interceptors
             {
                 return;
             }
-            // Get all aggregates with domain events and dispatch them
             var aggregates = context.ChangeTracker
                 .Entries<IAggregate>()
                 .Where(e => e.Entity.DomainEvents.Any())
                 .Select(e => e.Entity);
 
-            // Flatten the domain events from all aggregates and dispatch them
             var domainEvents = aggregates
                 .SelectMany(e => e.DomainEvents)
                 .ToList();

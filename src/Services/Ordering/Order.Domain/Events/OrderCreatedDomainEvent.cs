@@ -1,4 +1,6 @@
-﻿namespace Ordering.Domain.Events
+﻿using Ordering.Domain.Models;
+
+namespace Ordering.Domain.Events
 {
-    public class OrderCreatedDomainEvent(Models.Order order):IDomainEvent;
+    public class OrderCreatedDomainEvent(Order order):IDomainEvent;
 }
